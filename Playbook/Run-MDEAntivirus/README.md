@@ -13,7 +13,7 @@ After deployment, you can run this playbook manually on an alert or attach it to
 
 [Learn more about automation rules](https://docs.microsoft.com/azure/sentinel/automate-incident-handling-with-automation-rules#creating-and-managing-automation-rules)
 
-[![Deploy to Azure](https://aka.ms/deploytoazurebutton)](https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2FAzure%2FAzure-Sentinel%2Fmaster%2FSolutions%2FMicrosoftDefenderForEndpoint%2FPlaybooks%2FRun-MDEAntivirus%2FRun-MDEAntivirus-alert-trigger%2Fazuredeploy.json)
+[![Deploy to Azure](https://aka.ms/deploytoazurebutton)](https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2FRakeshPrasad21%2FSOC%2Fmain%2FPlaybook%2FRun-MDEAntivirus%2FRun-MDEAntivirus-alert-trigger%2Fazuredeploy.json)
 
 ## Prerequisites
 
@@ -42,7 +42,3 @@ New-AzureAdServiceAppRoleAssignment -ObjectId $MI.ObjectId -PrincipalId $MI.Obje
 
 ```
 
-## Screenshots
-
-**Alert Trigger**
-![Alert Trigger](./Run-MDEAntivirus/Run-MDEAntivirus-alert-trigger/images/Run-MDEAntivirus_alert.png)
