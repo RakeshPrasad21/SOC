@@ -1,296 +1,57 @@
 {
-  "version": "Notebook/1.0",
-  "items": [
-    {
-      "type": 1,
-      "content": {
-        "json": "# CISO Dashboard"
-      },
-      "customWidth": "80",
-      "name": "text - 11"
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "workbookDisplayName": {
+      "type": "string",
+      "defaultValue": "SOC Reporting",
+      "metadata": {
+        "description": "The friendly name for the workbook that is used in the Gallery or Saved List.  This name must be unique within a resource group."
+      }
     },
-    {
-      "type": 1,
-      "content": {
-        "json": "<img src=\"https://raw.githubusercontent.com/RakeshPrasad21/SOC/main/mannai/images/Home.png\" alt=\"Mannai\" width=\"150\"/>"
-      },
-      "customWidth": "20",
-      "name": "text - 12"
+    "workbookType": {
+      "type": "string",
+      "defaultValue": "sentinel",
+      "metadata": {
+        "description": "The gallery that the workbook will been shown under. Supported values include workbook, tsg, etc. Usually, this is 'workbook'"
+      }
     },
-    {
-      "type": 9,
-      "content": {
-        "version": "KqlParameterItem/1.0",
-        "parameters": [
-          {
-            "id": "64d489ba-dbed-41b7-9492-a466c9e14020",
-            "version": "KqlParameterItem/1.0",
-            "name": "TimeRange",
-            "type": 4,
-            "typeSettings": {
-              "selectableValues": [
-                {
-                  "durationMs": 300000
-                },
-                {
-                  "durationMs": 900000
-                },
-                {
-                  "durationMs": 1800000
-                },
-                {
-                  "durationMs": 3600000
-                },
-                {
-                  "durationMs": 14400000
-                },
-                {
-                  "durationMs": 43200000
-                },
-                {
-                  "durationMs": 86400000
-                },
-                {
-                  "durationMs": 172800000
-                },
-                {
-                  "durationMs": 259200000
-                },
-                {
-                  "durationMs": 604800000
-                },
-                {
-                  "durationMs": 1209600000
-                },
-                {
-                  "durationMs": 2419200000
-                },
-                {
-                  "durationMs": 2592000000
-                },
-                {
-                  "durationMs": 5184000000
-                },
-                {
-                  "durationMs": 7776000000
-                }
-              ]
-            },
-            "timeContext": {
-              "durationMs": 86400000
-            },
-            "value": {
-              "durationMs": 604800000
-            }
-          }
-        ],
-        "style": "pills",
-        "queryType": 0,
-        "resourceType": "microsoft.operationalinsights/workspaces"
-      },
-      "name": "parameters - 1"
+    "workbookSourceId": {
+      "type": "string",
+      "defaultValue": "/subscriptions/43b7aa1b-8f4c-4199-a1f7-9e62ea2a3fbf/resourcegroups/rg-mdr-weu-lighthouse/providers/microsoft.operationalinsights/workspaces/mdr-soc",
+      "metadata": {
+        "description": "The id of resource instance to which the workbook will be associated"
+      }
     },
+    "workbookId": {
+      "type": "string",
+      "defaultValue": "[newGuid()]",
+      "metadata": {
+        "description": "The unique guid for this workbook instance"
+      }
+    }
+  },
+  "resources": [
     {
-      "type": 3,
-      "content": {
-        "version": "KqlItem/1.0",
-        "query": "SecurityIncident \r\n| where CreatedTime >= ago(7d) and CreatedTime <= now()\r\n| where Severity in ('*') or \"*\" in ('*')\r\n| extend Tactics = todynamic(AdditionalData.tactics)\r\n| where Tactics in ('*') or \"*\" in ('*')\r\n| extend Owner = todynamic(Owner.assignedTo) \r\n| where Owner in ('*') or \"*\" in ('*')\r\n| extend Product = todynamic((parse_json(tostring(AdditionalData.alertProductNames))[0])) \r\n| where Product in ('*') or \"*\" in ('*')\r\n| summarize Incidents=dcount(IncidentNumber) by Severity, bin(CreatedTime, 1d)",
-        "size": 0,
-        "title": "Sentinel Alert Raised Over Time",
-        "timeContextFromParameter": "TimeRange",
-        "queryType": 0,
-        "resourceType": "microsoft.operationalinsights/workspaces",
-        "visualization": "areachart"
-      },
-      "customWidth": "50",
-      "name": "query - 9"
-    },
-    {
-      "type": 3,
-      "content": {
-        "version": "KqlItem/1.0",
-        "query": "SecurityIncident\r\n| where Severity !contains \"Informational\"\r\n| summarize arg_max(TimeGenerated,*) by IncidentNumber\r\n| summarize count() by Title\r\n| top 10  by count_",
-        "size": 0,
-        "title": "Top 10 Incidents ",
-        "timeContextFromParameter": "TimeRange",
-        "queryType": 0,
-        "resourceType": "microsoft.operationalinsights/workspaces",
-        "visualization": "barchart"
-      },
-      "customWidth": "50",
-      "name": "query - 10"
-    },
-    {
-      "type": 3,
-      "content": {
-        "version": "KqlItem/1.0",
-        "query": "SecurityIncident\r\n| where Severity !contains \"Informational\"\r\n| summarize arg_max(TimeGenerated, *) by IncidentNumber\r\n| where Severity contains \"High\" and Status != \"Closed\"\r\n| extend times=  now() - CreatedTime\r\n| extend time1= toreal(times)\r\n| extend time2= time1 / 10000000\r\n| extend time3= toint(time2)\r\n| extend time4=time3 / 3600\r\n| project time4, Title, IncidentNumber, TimeGenerated",
-        "size": 1,
-        "title": "High Severity Incident By Ageing",
-        "timeContextFromParameter": "TimeRange",
-        "queryType": 0,
-        "resourceType": "microsoft.operationalinsights/workspaces",
-        "visualization": "tiles",
-        "tileSettings": {
-          "titleContent": {
-            "columnMatch": "Title",
-            "formatter": 1
-          },
-          "leftContent": {
-            "columnMatch": "time4",
-            "formatter": 12,
-            "formatOptions": {
-              "palette": "auto"
-            },
-            "numberFormat": {
-              "unit": 27,
-              "options": {
-                "style": "decimal",
-                "maximumFractionDigits": 2,
-                "maximumSignificantDigits": 3
-              }
-            }
-          },
-          "showBorder": false
-        }
-      },
-      "customWidth": "50",
-      "name": "query - 2"
-    },
-    {
-      "type": 3,
-      "content": {
-        "version": "KqlItem/1.0",
-        "query": "SecurityIncident\r\n| extend Tactics = todynamic(AdditionalData.tactics)\r\n| extend Owner = todynamic(Owner.assignedTo) \r\n| extend Product = todynamic((parse_json(tostring(AdditionalData.alertProductNames))[0])) \r\n| summarize arg_max(TimeGenerated,*) by IncidentNumber \r\n| extend TimeToClosure =  (ClosedTime - CreatedTime)/1h\r\n| summarize 50th_Percentile=percentile(TimeToClosure, 50)",
-        "size": 0,
-        "title": "Mean Time To Close",
-        "timeContextFromParameter": "TimeRange",
-        "queryType": 0,
-        "resourceType": "microsoft.operationalinsights/workspaces",
-        "visualization": "tiles",
-        "tileSettings": {
-          "titleContent": {},
-          "subtitleContent": {
-            "columnMatch": "50th_Percentile",
-            "formatter": 12,
-            "formatOptions": {
-              "palette": "auto"
-            },
-            "numberFormat": {
-              "unit": 27,
-              "options": {
-                "style": "decimal"
-              }
-            }
-          },
-          "showBorder": false,
-          "size": "auto"
-        }
-      },
-      "customWidth": "20",
-      "name": "query - 6"
-    },
-    {
-      "type": 3,
-      "content": {
-        "version": "KqlItem/1.0",
-        "query": "SecurityIncident\r\n| where Severity !contains \"Informational\"\r\n| summarize arg_max(TimeGenerated,*) by IncidentNumber\r\n| extend Comments = parse_json(Comments)\r\n| mv-expand Comments\r\n| extend Comment = parse_json(Comments.message)\r\n| where isnotempty( Classification)\r\n| summarize count() by Classification\r\n| render piechart ",
-        "size": 0,
-        "title": "Incident Classification",
-        "timeContextFromParameter": "TimeRange",
-        "queryType": 0,
-        "resourceType": "microsoft.operationalinsights/workspaces"
-      },
-      "customWidth": "30",
-      "name": "query - 5"
-    },
-    {
-      "type": 3,
-      "content": {
-        "version": "KqlItem/1.0",
-        "query": "SecurityIncident\r\n| where Severity !contains \"Informational\"\r\n| summarize arg_max(TimeGenerated,*) by IncidentNumber\r\n| summarize count() by  Status,Severity",
-        "size": 0,
-        "title": "High-Medium-Low Incident Status",
-        "timeContextFromParameter": "TimeRange",
-        "queryType": 0,
-        "resourceType": "microsoft.operationalinsights/workspaces",
-        "visualization": "barchart",
-        "chartSettings": {
-          "xAxis": "Severity",
-          "showLegend": true
-        }
-      },
-      "customWidth": "50",
-      "name": "query - 0"
-    },
-    {
-      "type": 3,
-      "content": {
-        "version": "KqlItem/1.0",
-        "query": "SecurityIncident\r\n| where Severity !contains \"Informational\"\r\n| summarize arg_max(TimeGenerated, *) by IncidentNumber\r\n| extend Comments = parse_json(Comments)\r\n| mv-expand Comments\r\n| extend Comment = parse_json(Comments.message)\r\n| project\r\n    TimeGenerated,\r\n    IncidentNumber,\r\n    Severity,\r\n    Title,\r\n    CreatedTime,\r\n    NotfiedTime=FirstModifiedTime,\r\n    Status,\r\n    ClassificationComment,\r\n    Comment\r\n| union (SecurityIncident\r\n    | where Severity !contains \"Informational\"\r\n    | summarize arg_max(TimeGenerated, *) by IncidentNumber\r\n    | where Comments == \"[]\"\r\n    | project\r\n        TimeGenerated,\r\n        IncidentNumber,\r\n        Severity,\r\n        Title,\r\n        CreatedTime,\r\n        NotfiedTime=FirstModifiedTime,\r\n        Status,\r\n        ClassificationComment,\r\n        Comment=Comments)\r\n| extend Raised = iif(Comment contains \"https\", iif(Comment !contains \"Already\", \"Raised\", \"Closed\"), \"Closed\")\r\n| summarize count() by Raised, bin(TimeGenerated, 1d)",
-        "size": 0,
-        "title": "Incident Raised Over Time",
-        "timeContextFromParameter": "TimeRange",
-        "queryType": 0,
-        "resourceType": "microsoft.operationalinsights/workspaces",
-        "visualization": "barchart",
-        "chartSettings": {
-          "xAxis": "TimeGenerated"
-        }
-      },
-      "customWidth": "50",
-      "name": "query - 0 - Copy"
-    },
-    {
-      "type": 3,
-      "content": {
-        "version": "KqlItem/1.0",
-        "query": "SecurityAlert\r\n| where AlertSeverity !contains \"Informational\"\r\n| summarize count() by AlertName, Tactics",
-        "size": 0,
-        "title": "Incidents with MITRE Mapping",
-        "timeContextFromParameter": "TimeRange",
-        "queryType": 0,
-        "resourceType": "microsoft.operationalinsights/workspaces",
-        "visualization": "barchart",
-        "chartSettings": {
-          "xAxis": "Tactics",
-          "showLegend": true
-        }
-      },
-      "name": "query - 4"
-    },
-    {
-      "type": 3,
-      "content": {
-        "version": "KqlItem/1.0",
-        "query": "SecurityIncident\r\n| where LastActivityTime >= ago (7d) and LastModifiedTime <= now()\r\n| where FirstModifiedTime >= ago(7d) and FirstModifiedTime <= now()\r\n| where Severity in ('*') or \"*\" in ('*')\r\n| extend Tactics = todynamic(AdditionalData.tactics)\r\n| where Tactics in ('*') or \"*\" in ('*')\r\n| extend Owner = todynamic(Owner.assignedTo) \r\n| where Owner in ('*') or \"*\" in ('*')\r\n| extend Product = todynamic((parse_json(tostring(AdditionalData.alertProductNames))[0])) \r\n| where Product in ('*') or \"*\" in ('*')\r\n| summarize arg_max(LastModifiedTime,  *) by IncidentNumber \r\n| summarize arg_max(TimeGenerated, *) by IncidentNumber \r\n| extend TimeToDetect =  (FirstModifiedTime - CreatedTime) / 1h\r\n| extend TimeToRespond =  (LastModifiedTime- CreatedTime) / 1h\r\n| summarize MTTD=percentile(TimeToDetect, 50),  MTTR=percentile(TimeToRespond, 50)by bin(CreatedTime, 1d)",
-        "size": 0,
-        "title": "Mean Time To detect and respond",
-        "timeContextFromParameter": "TimeRange",
-        "queryType": 0,
-        "resourceType": "microsoft.operationalinsights/workspaces",
-        "visualization": "barchart"
-      },
-      "name": "query - 6 - Copy"
-    },
-    {
-      "type": 3,
-      "content": {
-        "version": "KqlItem/1.0",
-        "query": "Usage\r\n| where TimeGenerated > startofday(ago(1d))\r\n| where StartTime > startofday(ago(1d))\r\n| where IsBillable == true\r\n| summarize TotalVolumeGB = sum(Quantity) / 1000 by bin(StartTime, 1d), DataType\r\n| order by StartTime",
-        "size": 0,
-        "title": "Per Day Ingestion By Device Type",
-        "timeContextFromParameter": "TimeRange",
-        "queryType": 0,
-        "resourceType": "microsoft.operationalinsights/workspaces",
-        "visualization": "barchart"
-      },
-      "name": "query - 8"
+      "name": "[parameters('workbookId')]",
+      "type": "microsoft.insights/workbooks",
+      "location": "[resourceGroup().location]",
+      "apiVersion": "2021-03-08",
+      "dependsOn": [],
+      "kind": "shared",
+      "properties": {
+        "displayName": "[parameters('workbookDisplayName')]",
+        "serializedData": "{\"version\":\"Notebook/1.0\",\"items\":[{\"type\":1,\"content\":{\"json\":\"# MSOC Daily Reporting\\r\\n\\r\\n\"},\"customWidth\":\"80\",\"name\":\"Main headline\"},{\"type\":1,\"content\":{\"json\":\"<img src=\\\"https://raw.githubusercontent.com/RakeshPrasad21/SOC/main/mannai/images/Home.png\\\" alt=\\\"Mannai\\\" width=\\\"150\\\"/>\"},\"customWidth\":\"20\",\"name\":\"text - 9\"},{\"type\":9,\"content\":{\"version\":\"KqlParameterItem/1.0\",\"crossComponentResources\":[\"{Subscription}\"],\"parameters\":[{\"id\":\"bb19888a-5b17-428e-a419-362914af8bf2\",\"version\":\"KqlParameterItem/1.0\",\"name\":\"DefaultSubscription_Internal\",\"type\":1,\"isRequired\":true,\"query\":\"where type =~ 'microsoft.operationalinsights/workspaces'\\r\\n| take 1\\r\\n| project subscriptionId\",\"crossComponentResources\":[\"value::selected\"],\"isHiddenWhenLocked\":true,\"queryType\":1,\"resourceType\":\"microsoft.resourcegraph/resources\"},{\"id\":\"0f9a5a72-e618-4c11-b903-1e61220583ac\",\"version\":\"KqlParameterItem/1.0\",\"name\":\"Subscription\",\"type\":6,\"query\":\"summarize by subscriptionId\\r\\n| project value = strcat(\\\"/subscriptions/\\\", subscriptionId), label = subscriptionId, selected = iff(subscriptionId =~ '{DefaultSubscription_Internal}', true, false)\",\"crossComponentResources\":[\"value::selected\"],\"typeSettings\":{\"additionalResourceOptions\":[],\"showDefault\":false},\"queryType\":1,\"resourceType\":\"microsoft.resourcegraph/resources\"},{\"id\":\"9d80cf8e-ba5f-4734-ad3e-a1f51e76da94\",\"version\":\"KqlParameterItem/1.0\",\"name\":\"Workspace\",\"type\":5,\"query\":\"where type =~ 'microsoft.operationalinsights/workspaces'\\r\\n| project id\",\"crossComponentResources\":[\"{Subscription}\"],\"typeSettings\":{\"resourceTypeFilter\":{\"microsoft.operationalinsights/workspaces\":true},\"additionalResourceOptions\":[],\"showDefault\":false},\"queryType\":1,\"resourceType\":\"microsoft.resourcegraph/resources\",\"value\":null},{\"id\":\"7d597ad7-4a2a-45ed-a4fe-7ee32de0fc22\",\"version\":\"KqlParameterItem/1.0\",\"name\":\"TimeRange\",\"type\":4,\"isRequired\":true,\"typeSettings\":{\"selectableValues\":[{\"durationMs\":43200000},{\"durationMs\":2592000000}],\"allowCustom\":true},\"value\":{\"durationMs\":43200000}},{\"id\":\"baa92cd2-7ade-41c3-a07c-a11f5ce3e0e6\",\"version\":\"KqlParameterItem/1.0\",\"name\":\"Help\",\"label\":\"Show Help\",\"type\":10,\"isRequired\":true,\"isHiddenWhenLocked\":true,\"typeSettings\":{\"additionalResourceOptions\":[],\"showDefault\":false},\"jsonData\":\"[{ \\\"value\\\": \\\"Yes\\\", \\\"label\\\": \\\"Yes\\\"},\\r\\n {\\\"value\\\": \\\"No\\\", \\\"label\\\": \\\"No\\\", \\\"selected\\\":true }]\",\"timeContext\":{\"durationMs\":0},\"timeContextFromParameter\":\"TimeRange\"}],\"style\":\"above\",\"queryType\":1,\"resourceType\":\"microsoft.resourcegraph/resources\"},\"customWidth\":\"100\",\"name\":\"parameters - 6\"},{\"type\":1,\"content\":{\"json\":\"## Incidents by closing classification\"},\"customWidth\":\"100\",\"name\":\"Incidents by classification - headline\"},{\"type\":3,\"content\":{\"version\":\"KqlItem/1.0\",\"query\":\"SecurityIncident\\n| where Status == 'Closed'\\n| extend Product = todynamic((parse_json(tostring(AdditionalData.alertProductNames))[0])) \\n| extend feedback =strcat(Classification,\\\" \\\",ClassificationReason)\\n| summarize dcount(IncidentNumber) by feedback\\n\",\"size\":4,\"timeContextFromParameter\":\"TimeRange\",\"queryType\":0,\"resourceType\":\"microsoft.operationalinsights/workspaces\",\"crossComponentResources\":[\"{Workspace}\"],\"visualization\":\"piechart\"},\"customWidth\":\"50\",\"name\":\"Incidents by classification - headline\"},{\"type\":3,\"content\":{\"version\":\"KqlItem/1.0\",\"query\":\"SecurityIncident \\n| summarize arg_max(TimeGenerated,Status, Severity, Owner, AdditionalData) by IncidentNumber\\n| extend Tactics = todynamic(AdditionalData.tactics)\\n| extend Owner = todynamic(Owner.assignedTo) \\n| extend Product = todynamic((parse_json(tostring(AdditionalData.alertProductNames))[0]))\\n| summarize dcount(IncidentNumber) by Severity\",\"size\":1,\"title\":\"Incidents created by severity\",\"timeContextFromParameter\":\"TimeRange\",\"queryType\":0,\"resourceType\":\"microsoft.operationalinsights/workspaces\",\"crossComponentResources\":[\"{Workspace}\"],\"visualization\":\"piechart\",\"tileSettings\":{\"showBorder\":false,\"titleContent\":{\"columnMatch\":\"Classification\",\"formatter\":1},\"leftContent\":{\"columnMatch\":\"dcount_IncidentNumber\",\"formatter\":12,\"formatOptions\":{\"palette\":\"auto\"},\"numberFormat\":{\"unit\":17,\"options\":{\"maximumSignificantDigits\":3,\"maximumFractionDigits\":2}}}},\"chartSettings\":{\"seriesLabelSettings\":[{\"seriesName\":\"Informational\",\"color\":\"gray\"},{\"seriesName\":\"Low\",\"color\":\"yellow\"},{\"seriesName\":\"Medium\",\"color\":\"orange\"},{\"seriesName\":\"High\",\"color\":\"red\"}]}},\"customWidth\":\"50\",\"name\":\"By severity\"},{\"type\":3,\"content\":{\"version\":\"KqlItem/1.0\",\"query\":\"SecurityIncident\\n| summarize arg_max(TimeGenerated, Status, Severity, Owner, AdditionalData) by IncidentNumber\\n| extend Owner = todynamic(Owner.assignedTo)\\n| extend Product = todynamic((parse_json(tostring(AdditionalData.alertProductNames))[0])) \\n| summarize count() by case(tostring(Owner)==\\\"\\\", \\\"Unassigned\\\",tostring(Owner))\\n\\n\",\"size\":4,\"title\":\"Incidents created by owner\",\"timeContextFromParameter\":\"TimeRange\",\"queryType\":0,\"resourceType\":\"microsoft.operationalinsights/workspaces\",\"crossComponentResources\":[\"{Workspace}\"],\"visualization\":\"piechart\",\"tileSettings\":{\"showBorder\":false,\"titleContent\":{\"columnMatch\":\"Classification\",\"formatter\":1},\"leftContent\":{\"columnMatch\":\"dcount_IncidentNumber\",\"formatter\":12,\"formatOptions\":{\"palette\":\"auto\"},\"numberFormat\":{\"unit\":17,\"options\":{\"maximumSignificantDigits\":3,\"maximumFractionDigits\":2}}}}},\"name\":\"By SOC Analysts\"},{\"type\":3,\"content\":{\"version\":\"KqlItem/1.0\",\"query\":\"SecurityIncident\\n| summarize arg_max(TimeGenerated, Status, Severity, Owner, AdditionalData) by IncidentNumber\\n| summarize count() by Status\\n\",\"size\":4,\"title\":\"Incidents created by status\",\"timeContextFromParameter\":\"TimeRange\",\"queryType\":0,\"resourceType\":\"microsoft.operationalinsights/workspaces\",\"crossComponentResources\":[\"{Workspace}\"],\"visualization\":\"piechart\",\"tileSettings\":{\"showBorder\":false,\"titleContent\":{\"columnMatch\":\"Classification\",\"formatter\":1},\"leftContent\":{\"columnMatch\":\"dcount_IncidentNumber\",\"formatter\":12,\"formatOptions\":{\"palette\":\"auto\"},\"numberFormat\":{\"unit\":17,\"options\":{\"maximumSignificantDigits\":3,\"maximumFractionDigits\":2}}}}},\"customWidth\":\"50\",\"name\":\"By status\"},{\"type\":12,\"content\":{\"version\":\"NotebookGroup/1.0\",\"groupType\":\"editable\",\"items\":[{\"type\":1,\"content\":{\"json\":\"Time to triage, is the time between the incident creation and its first update.\",\"style\":\"info\"},\"customWidth\":\"50\",\"conditionalVisibility\":{\"parameterName\":\"Help\",\"comparison\":\"isEqualTo\",\"value\":\"Yes\"},\"name\":\"Help1\"},{\"type\":1,\"content\":{\"json\":\"Time to closure, is the time between the incident creation and its last closure.\",\"style\":\"info\"},\"customWidth\":\"50\",\"conditionalVisibility\":{\"parameterName\":\"Help\",\"comparison\":\"isEqualTo\",\"value\":\"Yes\"},\"name\":\"Help1 - Copy\"},{\"type\":3,\"content\":{\"version\":\"KqlItem/1.0\",\"query\":\"SecurityIncident\\n| extend Tactics = todynamic(AdditionalData.tactics)\\n| extend Owner = todynamic(Owner.assignedTo) \\n| extend Product = todynamic((parse_json(tostring(AdditionalData.alertProductNames))[0])) \\n| summarize arg_max(LastModifiedTime,*) by IncidentNumber \\n| extend TimeToTriage =  (FirstModifiedTime - CreatedTime)/1h\\n| summarize 50th_Percentile=percentile(TimeToTriage, 50) \\n\",\"size\":4,\"title\":\"Mean time to Acknowledge Incidents\",\"timeContextFromParameter\":\"TimeRange\",\"queryType\":0,\"resourceType\":\"microsoft.operationalinsights/workspaces\",\"crossComponentResources\":[\"{Workspace}\"],\"visualization\":\"tiles\",\"tileSettings\":{\"titleContent\":{\"formatter\":1},\"leftContent\":{\"columnMatch\":\"50th_Percentile\",\"formatter\":12,\"formatOptions\":{\"palette\":\"auto\"},\"numberFormat\":{\"unit\":26,\"options\":{\"style\":\"decimal\",\"useGrouping\":false,\"maximumFractionDigits\":3}}},\"showBorder\":false,\"size\":\"auto\"}},\"customWidth\":\"33\",\"name\":\"MTTT\"},{\"type\":3,\"content\":{\"version\":\"KqlItem/1.0\",\"query\":\"SecurityIncident\\n| extend Tactics = todynamic(AdditionalData.tactics)\\n| extend Owner = todynamic(Owner.assignedTo) \\n| extend Product = todynamic((parse_json(tostring(AdditionalData.alertProductNames))[0])) \\n| summarize arg_max(TimeGenerated,*) by IncidentNumber \\n| extend TimeToClosure =  (ClosedTime - CreatedTime)/1h\\n| summarize 50th_Percentile=percentile(TimeToClosure, 50)\",\"size\":4,\"title\":\"Mean time to close incidents \",\"timeContextFromParameter\":\"TimeRange\",\"queryType\":0,\"resourceType\":\"microsoft.operationalinsights/workspaces\",\"crossComponentResources\":[\"{Workspace}\"],\"visualization\":\"tiles\",\"sortBy\":[],\"tileSettings\":{\"titleContent\":{\"columnMatch\":\"Classification\",\"formatter\":1,\"formatOptions\":{}},\"leftContent\":{\"columnMatch\":\"50th_Percentile\",\"formatter\":12,\"formatOptions\":{\"palette\":\"auto\"},\"numberFormat\":{\"unit\":26,\"options\":{\"style\":\"decimal\",\"useGrouping\":false,\"maximumFractionDigits\":3}}},\"showBorder\":false,\"size\":\"auto\"}},\"customWidth\":\"33\",\"name\":\"MTTM\"}]},\"customWidth\":\"50\",\"name\":\"Mean times\"},{\"type\":12,\"content\":{\"version\":\"NotebookGroup/1.0\",\"groupType\":\"editable\",\"items\":[{\"type\":12,\"content\":{\"version\":\"NotebookGroup/1.0\",\"groupType\":\"editable\",\"items\":[{\"type\":1,\"content\":{\"json\":\"## Mean time to closure per SOC Analysts\\r\\n\"},\"name\":\"text - 2 - Copy\"},{\"type\":1,\"content\":{\"json\":\"The mean time between the incident creation and last closure by owner\",\"style\":\"info\"},\"customWidth\":\"100\",\"conditionalVisibility\":{\"parameterName\":\"Help\",\"comparison\":\"isEqualTo\",\"value\":\"Yes\"},\"name\":\"Help3 - Copy\"},{\"type\":3,\"content\":{\"version\":\"KqlItem/1.0\",\"query\":\"SecurityIncident\\n| extend Tactics = todynamic(AdditionalData.tactics)\\n| extend Owner = todynamic(Owner.assignedTo) \\n| extend Product = todynamic((parse_json(tostring(AdditionalData.alertProductNames))[0])) \\n|where Status == 'Closed'  \\n| extend Ownerr = case(tostring(Owner)==\\\"\\\", \\\"Unassigned\\\",tostring(Owner))\\n| summarize arg_min(LastModifiedTime,*) by IncidentNumber, Owner = Ownerr\\n| extend TimeToTriage = LastModifiedTime - CreatedTime, Owner\\n| summarize avg(TimeToTriage/1h) by Owner\\n\",\"size\":4,\"timeContextFromParameter\":\"TimeRange\",\"exportFieldName\":\"series\",\"exportParameterName\":\"Status\",\"exportDefaultValue\":\"All\",\"queryType\":0,\"resourceType\":\"microsoft.operationalinsights/workspaces\",\"crossComponentResources\":[\"{Workspace}\"],\"visualization\":\"tiles\",\"tileSettings\":{\"titleContent\":{\"columnMatch\":\"Owner\",\"formatter\":1,\"formatOptions\":{}},\"leftContent\":{\"columnMatch\":\"avg_\",\"formatter\":12,\"formatOptions\":{\"palette\":\"auto\"},\"numberFormat\":{\"unit\":26,\"options\":{\"style\":\"decimal\",\"useGrouping\":false,\"maximumFractionDigits\":3}}},\"showBorder\":false}},\"name\":\"query - 2 - Copy\"}]},\"name\":\"Incident status over time\",\"styleSettings\":{\"margin\":\"0\",\"padding\":\"0\"}},{\"type\":12,\"content\":{\"version\":\"NotebookGroup/1.0\",\"groupType\":\"editable\",\"items\":[{\"type\":1,\"content\":{\"json\":\"## Mean time to triage per SOC Analysts\\r\\n\"},\"name\":\"text - 2 - Copy\"},{\"type\":1,\"content\":{\"json\":\"The mean time between the incident creation and first modification by owner\",\"style\":\"info\"},\"customWidth\":\"100\",\"conditionalVisibility\":{\"parameterName\":\"Help\",\"comparison\":\"isEqualTo\",\"value\":\"Yes\"},\"name\":\"Help3 - Copy - Copy\"},{\"type\":3,\"content\":{\"version\":\"KqlItem/1.0\",\"query\":\"SecurityIncident\\n| extend Tactics = todynamic(AdditionalData.tactics)\\n| extend Owner = todynamic(Owner.assignedTo) \\n| extend Product = todynamic((parse_json(tostring(AdditionalData.alertProductNames))[0])) \\n| summarize arg_max(FirstModifiedTime,*) by IncidentNumber \\n| extend TimeToTriage =  FirstModifiedTime - CreatedTime\\n| extend MinToTriage = TimeToTriage/1h\\n| summarize avg(TimeToTriage/1h) by owner=case(tostring(Owner)==\\\"\\\", \\\"Unassigned\\\",tostring(Owner))\\n\\n\",\"size\":4,\"timeContextFromParameter\":\"TimeRange\",\"exportFieldName\":\"series\",\"exportParameterName\":\"Status\",\"exportDefaultValue\":\"All\",\"queryType\":0,\"resourceType\":\"microsoft.operationalinsights/workspaces\",\"crossComponentResources\":[\"{Workspace}\"],\"visualization\":\"tiles\",\"tileSettings\":{\"titleContent\":{\"columnMatch\":\"owner\",\"formatter\":1},\"leftContent\":{\"columnMatch\":\"avg_\",\"formatter\":12,\"formatOptions\":{\"palette\":\"auto\"},\"numberFormat\":{\"unit\":26,\"options\":{\"style\":\"decimal\",\"useGrouping\":false,\"maximumFractionDigits\":3}}},\"showBorder\":false}},\"name\":\"query - 2 - Copy\"}]},\"name\":\"Incident status triage\",\"styleSettings\":{\"margin\":\"0\",\"padding\":\"0\"}}]},\"name\":\"Over time right panel\"}],\"isLocked\":false,\"fallbackResourceIds\":[\"/subscriptions/43b7aa1b-8f4c-4199-a1f7-9e62ea2a3fbf/resourcegroups/rg-mdr-weu-lighthouse/providers/microsoft.operationalinsights/workspaces/mdr-soc\"],\"fromTemplateId\":\"sentinel-UserWorkbook\"}",
+        "version": "1.0",
+        "sourceId": "[parameters('workbookSourceId')]",
+        "category": "[parameters('workbookType')]"
+      }
     }
   ],
-  "fallbackResourceIds": [
-    "/subscriptions/5c47f873-1696-4fad-8323-3f00267218da/resourcegroups/rg-hub-monitoringandsecurity/providers/microsoft.operationalinsights/workspaces/law-qna-monitoringandsecurity"
-  ],
-  "fromTemplateId": "sentinel-UserWorkbook",
-  "$schema": "https://github.com/Microsoft/Application-Insights-Workbooks/blob/master/schema/workbook.json"
+  "outputs": {
+    "workbookId": {
+      "type": "string",
+      "value": "[resourceId( 'microsoft.insights/workbooks', parameters('workbookId'))]"
+    }
+  },
+  "$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#"
 }
