@@ -1,0 +1,447 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/0.1.2-preview/CreateUIDefinition.MultiVm.json#",
+    "handler": "Microsoft.Azure.CreateUIDef",
+    "version": "0.1.2-preview",
+    "parameters": {
+        "config": {
+            "isWizard": true,
+            "basics": {
+                "description": "## Microsoft Sentinel-SOC-Solution Deployment\nThe Microsoft Sentinel Triage AssistanT is designed to help build automated triages for Microsoft Sentinel Incidents to optimize the efficiency of your security operations. This deployment will allow you to deploy the necessary resources to use the Sentinel-SOC-Solution tool.\n ### Post Deployment \nAfter deploying this template, ensure to run the [GrantPermissions.ps1](https://github.com/briandelmsft/SentinelAutomationModules/blob/main/Deploy/GrantPermissions.ps1) script to grant permissions to the Sentinel-SOC-Solution modules.  It may take up to 15 minutes for the permissions to become effective.",
+                "resourceGroup": {
+                    "constraints": {
+                        "validations": [
+                            {
+                                "permission": "Microsoft.Logic/workflows/write",
+                                "message": "You must have permission to create and update Logic Apps"
+                            }
+                        ]
+                    }
+                },
+                "location": {
+                    "label": "Location",
+                    "toolTip": "Location for all resources",
+                    "resourceTypes": [
+                        "Microsoft.Logic"
+                    ]
+                }
+            }
+        },
+        "basics": [],
+        "steps": [
+            {
+                "name": "deploymentTypeStep",
+                "label": "Deployment Type",
+                "elements": [
+                    {
+                        "name": "deployTextBlock2",
+                        "type": "Microsoft.Common.TextBlock",
+                        "visible": true,
+                        "options": {
+                            "text": "Select the type of deployment you want for the Sentinel-SOC-Solution"
+                        }
+                    },
+                    {
+                        "name": "deployTextBlock3",
+                        "type": "Microsoft.Common.TextBlock",
+                        "visible": true,
+                        "options": {
+                            "text": "A standard deployment allows you to deploy or update the entire Sentinel-SOC-Solution solution with minimal input.  An advanced deployment allows for additional configuration such as providing customized names to the Logic Apps.",
+                            "link": {
+                                "label": "Learn more",
+                                "uri": "https://github.com/briandelmsft/SentinelAutomationModules/tree/main/Deploy"
+                            }
+                        }
+                    },
+                    {
+                        "name": "deploymentType",
+                        "type": "Microsoft.Common.OptionsGroup",
+                        "label": "Select the deployment type",
+                        "defaultValue": "Standard (recommended)",
+                        "toolTip": "",
+                        "constraints": {
+                            "allowedValues": [
+                                {
+                                    "label": "Standard (recommended)",
+                                    "value": "standard"
+                                },
+                                {
+                                    "label": "Advanced",
+                                    "value": "advanced"
+                                }
+                            ],
+                            "required": true
+                        },
+                        "visible": true
+                    }
+                ]
+            },
+            {
+                "name": "automationModules",
+                "label": "Sentinel-SOC-Solution Setup",
+                "elements": [
+                    {
+                        "name": "standardSetup",
+                        "type": "Microsoft.Common.Section",
+                        "label": "Standard Setup - Sentinel-SOC-Solution",
+                        "elements": [
+                            {
+                                "name": "textBlock1",
+                                "type": "Microsoft.Common.TextBlock",
+                                "visible": true,
+                                "options": {
+                                    "text": "The standard setup mode will deploy all Modules and the Sentinel-SOC-Solution Logic Apps connector with default names",
+                                    "link": {
+                                        "label": "Learn more",
+                                        "uri": "https://github.com/briandelmsft/SentinelAutomationModules/tree/main/Modules"
+                                    }
+                                }
+                            },
+                            {
+                                "name": "DeployConnector",
+                                "type": "Microsoft.Common.CheckBox",
+                                "label": "Deploy the Sentinel-SOC-Solution Solution",
+                                "defaultValue": true,
+                                "toolTip": "",
+                                "constraints": {}
+                            }
+                        ],
+                        "visible": "[if(equals(steps('deploymentTypeStep').deploymentType, 'standard'), true, false)]"
+                    },
+                    {
+                        "name": "advancedSetup",
+                        "type": "Microsoft.Common.Section",
+                        "label": "Advanced Setup - Sentinel-SOC-Solution",
+                        "elements": [
+                            {
+                                "name": "textBlock1",
+                                "type": "Microsoft.Common.TextBlock",
+                                "visible": true,
+                                "options": {
+                                    "text": "The Advanced Setup allows you to configure your own names for the resources created by this deployment.  When updating the Sentinel-SOC-Solution solution you must use the same names or new copies of the Logic Apps will be deployed.",
+                                    "link": {
+                                        "label": "Learn more",
+                                        "uri": "https://github.com/briandelmsft/SentinelAutomationModules/tree/main/"
+                                    }
+                                }
+                            },
+                            {
+                                "name": "enableModulesKind",
+                                "type": "Microsoft.Common.DropDown",
+                                "label": "Select Automation Modules to onboard",
+                                "placeholder": "",
+                                "multiselect": true,
+                                "defaultValue": "",
+                                "toolTip": "Select the Automation modules you would like to deploy.",
+                                "constraints": {
+                                    "allowedValues": [
+                                        {
+                                            "label": "Azure AD Risks Module",
+                                            "value": "AADModule"
+                                        },
+                                        {
+                                            "label": "File Module",
+                                            "value": "FileModule"
+                                        },
+                                        {
+                                            "label": "KQL Module",
+                                            "value": "KQLModule"
+                                        },
+                                        {
+                                            "label": "MCAS Module",
+                                            "value": "MCASModule"
+                                        },
+                                        {
+                                            "label": "MDE Module",
+                                            "value": "MDEModule"
+                                        },
+                                        {
+                                            "label": "Out of Office Module",
+                                            "value": "OOFModule"
+                                        },
+                                        {
+                                            "label": "Related Alerts Module",
+                                            "value": "RelatedAlerts"
+                                        },
+                                        {
+                                            "label": "Threat Intelligence Module",
+                                            "value": "TIModule"
+                                        },
+                                        {
+                                            "label": "UEBA Module",
+                                            "value": "UEBAModule"
+                                        },
+                                        {
+                                            "label": "Watchlist Module",
+                                            "value": "WatchlistModule"
+                                        }
+                                    ],
+                                    "required": false
+                                },
+                                "visible": false
+                            },
+                            {
+                                "name": "BasePlaybookName",
+                                "type": "Microsoft.Common.TextBox",
+                                "label": "Base Playbook Name",
+                                "placeholder": "",
+                                "defaultValue": "Base-Module",
+                                "toolTip": "",
+                                "constraints": {}
+                            },
+                            {
+                                "name": "AADRisksPlaybookName",
+                                "type": "Microsoft.Common.TextBox",
+                                "label": "Azure AD Risks Playbook Name",
+                                "placeholder": "",
+                                "defaultValue": "Get-AADUserRisksInfo",
+                                "toolTip": "",
+                                "constraints": {},
+                                "visible": true
+                            },
+                            {
+                                "name": "FilePlaybookName",
+                                "type": "Microsoft.Common.TextBox",
+                                "label": "File Playbook Name",
+                                "placeholder": "",
+                                "defaultValue": "Get-FileInsights",
+                                "toolTip": "",
+                                "constraints": {},
+                                "visible": true
+                            },
+                            {
+                                "name": "KQLPlaybookName",
+                                "type": "Microsoft.Common.TextBox",
+                                "label": "KQL Playbook Name",
+                                "placeholder": "",
+                                "defaultValue": "Run-KQLQuery",
+                                "toolTip": "",
+                                "constraints": {},
+                                "visible": true
+                            },
+                            {
+                                "name": "OOFPlaybookName",
+                                "type": "Microsoft.Common.TextBox",
+                                "label": "Out Of Office Playbook Name",
+                                "placeholder": "",
+                                "defaultValue": "Get-OOFDetails",
+                                "toolTip": "",
+                                "constraints": {},
+                                "visible": true
+                            },
+                            {
+                                "name": "RelatedAlertsPlaybookName",
+                                "type": "Microsoft.Common.TextBox",
+                                "label": "Related Alerts Playbook Name",
+                                "placeholder": "",
+                                "defaultValue": "Get-RelatedAlerts",
+                                "toolTip": "",
+                                "constraints": {},
+                                "visible": true
+                            },
+                            {
+                                "name": "RunPlaybookPlaybookName",
+                                "type": "Microsoft.Common.TextBox",
+                                "label": "Run-Playbook Playbook Name",
+                                "placeholder": "",
+                                "defaultValue": "Run-Playbook",
+                                "toolTip": "",
+                                "constraints": {},
+                                "visible": true
+                            },
+                            {
+                                "name": "ScoringPlaybookName",
+                                "type": "Microsoft.Common.TextBox",
+                                "label": "Scoring Playbook Name",
+                                "placeholder": "",
+                                "defaultValue": "Calculate-RiskScore",
+                                "toolTip": "",
+                                "constraints": {},
+                                "visible": true
+                            },
+                            {
+                                "name": "TIPlaybookName",
+                                "type": "Microsoft.Common.TextBox",
+                                "label": "Threat Intelligence Playbook Name",
+                                "placeholder": "",
+                                "defaultValue": "Get-ThreatIntel",
+                                "toolTip": "",
+                                "constraints": {},
+                                "visible": true
+                            },
+                            {
+                                "name": "UEBAPlaybookName",
+                                "type": "Microsoft.Common.TextBox",
+                                "label": "UEBA Playbook Name",
+                                "placeholder": "",
+                                "defaultValue": "Get-UEBAInsights",
+                                "toolTip": "",
+                                "constraints": {},
+                                "visible": true
+                            },
+                            {
+                                "name": "MDEPlaybookName",
+                                "type": "Microsoft.Common.TextBox",
+                                "label": "MDE Playbook Name",
+                                "placeholder": "",
+                                "defaultValue": "Get-MDEInsights",
+                                "toolTip": "",
+                                "constraints": {},
+                                "visible": true
+                            },
+                            {
+                                "name": "WatchlistPlaybookName",
+                                "type": "Microsoft.Common.TextBox",
+                                "label": "Watchlist Playbook Name",
+                                "placeholder": "",
+                                "defaultValue": "Get-WatchlistInsights",
+                                "toolTip": "",
+                                "constraints": {},
+                                "visible": true
+                            },
+                            {
+                                "name": "MCASPlaybookName",
+                                "type": "Microsoft.Common.TextBox",
+                                "label": "MCAS Playbook Name",
+                                "placeholder": "",
+                                "defaultValue": "Get-MCASInvestigationScore",
+                                "toolTip": "",
+                                "constraints": {},
+                                "visible": true
+                            },
+                            {
+                                "name": "SentinelSOCSolutionCoordinatorPlaybookName",
+                                "type": "Microsoft.Common.TextBox",
+                                "label": "Sentinel-SOC-Solution Coordinator Playbook Name",
+                                "placeholder": "",
+                                "defaultValue": "Sentinel-SOC-Solution-Coordinator",
+                                "toolTip": "",
+                                "constraints": {},
+                                "visible": true
+                            },
+                            {
+                                "name": "CustomConnectorName",
+                                "type": "Microsoft.Common.TextBox",
+                                "label": "Sentinel-SOC-Solution Logic Apps Connector Name",
+                                "placeholder": "",
+                                "defaultValue": "SentinelSOCSolution",
+                                "toolTip": "",
+                                "constraints": {},
+                                "visible": true
+                            },
+                            {
+                                "name": "CustomConnectorDisplayName",
+                                "type": "Microsoft.Common.TextBox",
+                                "label": "Sentinel-SOC-Solution Logic Apps Connector Display Name",
+                                "placeholder": "",
+                                "defaultValue": "Sentinel-SOC-Solution",
+                                "toolTip": "",
+                                "constraints": {},
+                                "visible": true
+                            },
+                            {
+                                "name": "DeployWorkbook",
+                                "type": "Microsoft.Common.CheckBox",
+                                "label": "Deploy the Sentinel-SOC-Solution Monitoring Workbook",
+                                "defaultValue": true,
+                                "toolTip": "",
+                                "constraints": {},
+                                "visible": true
+                            },
+                            {
+                                "name": "WorkbookDisplayName",
+                                "type": "Microsoft.Common.TextBox",
+                                "label": "Sentinel-SOC-Solution Workbook Display Name",
+                                "placeholder": "",
+                                "defaultValue": "Sentinel-SOC-Solution - Status",
+                                "toolTip": "",
+                                "constraints": {},
+                                "visible": "[if(steps('automationModules').advancedSetup.DeployWorkbook, true, false)]"
+                            },
+                            {
+                                "name": "DeploymentBranch",
+                                "type": "Microsoft.Common.TextBox",
+                                "label": "Deploy from a specific GitHub Branch",
+                                "placeholder": "",
+                                "defaultValue": "main",
+                                "toolTip": "",
+                                "constraints": {},
+                                "visible": true
+                            }
+                        ],
+                        "visible": "[if(equals(steps('deploymentTypeStep').deploymentType, 'advanced'), true, false)]"
+                    }
+                ]
+            },
+            {
+                "name": "sampleStep",
+                "label": "Sample Deployment",
+                "elements": [
+                    {
+                        "name": "sampleTextBlock1",
+                        "type": "Microsoft.Common.TextBlock",
+                        "visible": true,
+                        "options": {
+                            "text": "Sample Playbook Deployment"
+                        }
+                    },
+                    {
+                        "name": "sampleTextBlock3",
+                        "type": "Microsoft.Common.TextBlock",
+                        "visible": true,
+                        "options": {
+                            "text": "The Basic Sample Playbook evaluates the incident entities to look for Related Alerts (Account, Host or IP), Threat Intelligence (Domain, FileHash, IP or URL) and Azure AD MFA Fraud reports. This sample demonstrates how Sentinel-SOC-Solution can be used to triage an incident and how the modules can work together. This sample is not meant to be capable of triaging any type of incident; additional playbooks may need to be built using Sentinel-SOC-Solution to handle the unique requirements of different incident types.",
+                            "link": {
+                                "label": "Learn more",
+                                "uri": "https://github.com/briandelmsft/SentinelAutomationModules/tree/main/Samples"
+                            }
+                        }
+                    },
+                    {
+                        "name": "DeployBasicSamplePlaybook",
+                        "type": "Microsoft.Common.CheckBox",
+                        "label": "Deploy the Basic Sample Incident Triage Playbook",
+                        "defaultValue": false,
+                        "toolTip": "",
+                        "constraints": {},
+                        "visible": true
+                    },
+                    {
+                        "name": "BasicSamplePlaybookName",
+                        "type": "Microsoft.Common.TextBox",
+                        "label": "Basic Sample Triage Playbook Name",
+                        "placeholder": "",
+                        "defaultValue": "Sample-Sentinel-SOC-Solution-Triage",
+                        "toolTip": "",
+                        "constraints": {},
+                        "visible": "[if(steps('sampleStep').DeployBasicSamplePlaybook, true, false)]"
+                    }
+                ]
+            }
+        ],
+        "outputs": {
+            "OOFPlaybookName": "[coalesce(steps('automationModules').advancedSetup.OOFPlaybookName,'Get-OOFDetails')]",
+            "RelatedAlertsPlaybookName": "[coalesce(steps('automationModules').advancedSetup.RelatedAlertsPlaybookName,'Get-RelatedAlerts')]",
+            "TIPlaybookName": "[coalesce(steps('automationModules').advancedSetup.TIPlaybookName,'Get-ThreatIntel')]",
+            "UEBAPlaybookName": "[coalesce(steps('automationModules').advancedSetup.UEBAPlaybookName,'Get-UEBAInsights')]",
+            "FilePlaybookName": "[coalesce(steps('automationModules').advancedSetup.FilePlaybookName,'Get-FileInsights')]",
+            "KQLPlaybookName": "[coalesce(steps('automationModules').advancedSetup.KQLPlaybookName,'Run-KQLQuery')]",
+            "RunPlaybookPlaybookName": "[coalesce(steps('automationModules').advancedSetup.RunPlaybookPlaybookName,'Run-Playbook')]",
+            "BasePlaybookName": "[coalesce(steps('automationModules').advancedSetup.BasePlaybookName,'Base-Module')]",
+            "AADRisksPlaybookName": "[coalesce(steps('automationModules').advancedSetup.AADRisksPlaybookName,'Get-AADUserRisksInfo')]",
+            "ScoringPlaybookName": "[coalesce(steps('automationModules').advancedSetup.ScoringPlaybookName,'Calculate-RiskScore')]",
+            "MDEPlaybookName": "[coalesce(steps('automationModules').advancedSetup.MDEPlaybookName,'Get-MDEInsights')]",
+            "MCASPlaybookName": "[coalesce(steps('automationModules').advancedSetup.MCASPlaybookName,'Get-MCASInvestigationScore')]",
+            "WatchlistPlaybookName": "[coalesce(steps('automationModules').advancedSetup.WatchlistPlaybookName,'Get-WatchlistInsights')]",
+            "DeployBasicSamplePlaybook": "[steps('sampleStep').DeployBasicSamplePlaybook]",
+            "BasicSamplePlaybookName": "[coalesce(steps('sampleStep').BasicSamplePlaybookName,'Sample-Sentinel-SOC-Solution-Triage')]",
+            "SentinelSOCSolutionCoordinatorPlaybookName": "[coalesce(steps('automationModules').advancedSetup.SentinelSOCSolutionCoordinatorPlaybookName,'Sentinel-SOC-Solution-Coordinator')]",
+            "CustomConnectorName": "[coalesce(steps('automationModules').advancedSetup.CustomConnectorName,'SentinelSOCSolution')]",
+            "CustomConnectorDisplayName": "[coalesce(steps('automationModules').advancedSetup.CustomConnectorDisplayName,'Sentinel-SOC-Solution')]",
+            "DeployConnector": true,
+            "WorkbookName": "[coalesce(steps('automationModules').advancedSetup.WorkbookDisplayName,'Sentinel-SOC-Solution - Status')]",
+            "DeployWorkbook": "[coalesce(steps('automationModules').advancedSetup.DeployWorkbook, true)]",
+            "DeploymentBranch": "[coalesce(steps('automationModules').advancedSetup.DeploymentBranch,'main')]",
+            "location": "[location()]"
+        }
+    }
+}
