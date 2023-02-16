@@ -12,7 +12,7 @@
     "variables": {
       "workbookType": "workbook",
       "workbookSourceId": "Azure Monitor",
-      "workbookId": "[newGuid()]",
+      "workbookId": "abe1b49f-3g73-48a7-8647-0714489c294f",
       "workbookContent": {
           "version": "Notebook/1.0",
           "items": [
